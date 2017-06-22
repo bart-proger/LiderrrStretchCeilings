@@ -1,0 +1,6 @@
+<resources>
+    <string name="app_name">Натяжные потолки \"Лидер\"</string>
+    <string name="layout_editor_label">Редактор макета</string>
+    <string name="btnSave_text">Сохранить</string>
+    <string name="btnNew_text">Новый</string>
+</resources>
