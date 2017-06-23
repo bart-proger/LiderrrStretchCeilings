@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.LinearLayout;
 
 public class LayoutEditor extends AppCompatActivity implements View.OnClickListener
@@ -12,6 +13,7 @@ public class LayoutEditor extends AppCompatActivity implements View.OnClickListe
     LinearLayout llLayoutView;
     Button btnNew, btnSave;
     LayoutView layoutView;
+    CheckBox cb90;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -21,8 +23,12 @@ public class LayoutEditor extends AppCompatActivity implements View.OnClickListe
 
         btnNew = (Button)findViewById(R.id.btnNew);
         btnNew.setOnClickListener(this);
+
         btnSave = (Button)findViewById(R.id.btnSave);
         btnSave.setOnClickListener(this);
+
+        cb90 = (CheckBox)findViewById(R.id.cb90);
+        cb90.setOnClickListener(this);
 
         llLayoutView = (LinearLayout)findViewById(R.id.llLayoutView);
         layoutView = new LayoutView(this);
@@ -39,6 +45,9 @@ public class LayoutEditor extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.btnSave:
                 // TODO: сохранить чертеж
+                break;
+            case R.id.cb90:
+                layoutView.setStraight(cb90.isChecked());
                 break;
         }
     }

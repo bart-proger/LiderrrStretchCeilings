@@ -20,6 +20,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/btnNew_text"/>
+
+        <CheckBox
+            android:id="@+id/cb90"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="0dp"
+            android:text="90*"/>
+
     </LinearLayout>
 
     <LinearLayout
@@ -30,6 +38,7 @@
         android:layout_alignParentStart="true"
         android:layout_weight="1"
         android:orientation="vertical"
+        tools:background="@android:color/darker_gray"
         tools:layout_editor_absoluteX="8dp"
         tools:layout_editor_absoluteY="8dp">
 
