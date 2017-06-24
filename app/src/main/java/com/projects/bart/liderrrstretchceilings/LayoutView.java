@@ -39,16 +39,17 @@ public class LayoutView extends View implements View.OnTouchListener
             selecting = false;
 
     Paint pointPaint, fillPaint, linePaint, letterPaint, lengthPaint, selPointPaint,
-            selAreaPaint;
+            selAreaPaint, infoPaint;
 
     PointF touch;
     PointF selectFrom, selectTo;
     float left, right, top, bottom;
 
-    final float POINT_SIZE = 12.0f;
-    final float SELECT_DISTANCE = 16.0f;
     final float DENSITY = Resources.getSystem().getDisplayMetrics().density;
-
+    final float POINT_SIZE = 10.0f;
+    final float SELECT_DISTANCE = 16.0f * DENSITY;
+    final float LETTER_FONT_SIZE = 14.0f;
+    final float LENGTH_FONT_SIZE = 8.0f;
 
     ArrayList<PointF> points;
     ArrayList<Integer> selectedIndices;
@@ -80,22 +81,25 @@ public class LayoutView extends View implements View.OnTouchListener
 
         linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         linePaint.setStyle(Paint.Style.STROKE);
-        linePaint.setStrokeWidth(2.0f);
+        linePaint.setStrokeWidth(2f);
         linePaint.setColor(Color.BLACK);
 
-        letterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        letterPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
         letterPaint.setColor(Color.WHITE);
         letterPaint.setTextAlign(Paint.Align.CENTER);
-        letterPaint.setTextSize(16.0f);
+        letterPaint.setTextSize(LETTER_FONT_SIZE);
         letterPaint.setTypeface(Typeface.create("Arial", Typeface.NORMAL));
-        letterPaint.setSubpixelText(true);
 
-        lengthPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        lengthPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
         lengthPaint.setTypeface(Typeface.MONOSPACE);
         lengthPaint.setTextAlign(Paint.Align.CENTER);
-        lengthPaint.setTextSize(9);
+        lengthPaint.setTextSize(LENGTH_FONT_SIZE);
         lengthPaint.setColor(Color.BLACK);
-        lengthPaint.setSubpixelText(true);
+
+        infoPaint = new Paint(Paint.ANTI_ALIAS_FLAG | Paint.SUBPIXEL_TEXT_FLAG);
+        infoPaint.setTypeface(Typeface.MONOSPACE);
+        infoPaint.setTextSize(14);
+        infoPaint.setColor(Color.BLACK);
 
         points = new ArrayList<>();
         selectedIndices = new ArrayList<>();
@@ -105,8 +109,8 @@ public class LayoutView extends View implements View.OnTouchListener
 
     private void drawInfo(Canvas canvas)
     {
-        for (int i = 0; i < 30; i++)
-            canvas.drawText(getPointLetter(i), 10, 20 + i * 20, lengthPaint);
+        canvas.drawText("density=" + String.valueOf(DENSITY), 10, 20, infoPaint);
+        canvas.drawText("select_dist=" + String.valueOf(SELECT_DISTANCE), 10, 40, infoPaint);
     }
 
     @Override
@@ -180,10 +184,12 @@ public class LayoutView extends View implements View.OnTouchListener
 
         float h = lengthPaint.getTextSize();
         PointF c = new PointF((p.x + p2.x) / 2f, (p.y + p2.y) / 2f);
-        RectF r = new RectF(c.x - w / 2f - 2, c.y - h / 2f - 2, c.x + w / 2f + 2, c.y + h / 2f + 2);
+//        RectF r = new RectF(c.x - w / 2f - 2, c.y - h / 2f - 2, c.x + w / 2f + 2, c.y + h / 2f + 2);
+        RectF r = new RectF(c.x, c.y, c.x, c.y);
+        r.inset(-w / 2 - 3, -h / 2 - 3);
         canvas.drawRoundRect(r, 5f, 5f, fillPaint);
         //canvas.drawText(s, r.left + 2, r.bottom - 2, lengthPaint);
-        canvas.drawText(s, c.x, c.y + 4, lengthPaint);
+        canvas.drawText(s, c.x, c.y + h / 2f - 1f, lengthPaint);
     }
 
     private String getPointLetter(int index)
