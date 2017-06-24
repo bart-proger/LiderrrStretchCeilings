@@ -8,6 +8,7 @@ import android.graphics.Paint;
 import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
+import android.graphics.Typeface;
 import android.view.MotionEvent;
 import android.view.View;
 
@@ -34,13 +35,15 @@ public class LayoutView extends View implements View.OnTouchListener
     boolean moving = false,
             selecting = false;
 
-    Paint pointPaint, fillPaint, linePaint, letterPaint, lengthPaint;
+    Paint pointPaint, fillPaint, linePaint, letterPaint, lengthPaint, selPointPaint,
+            selAreaPaint;
 
     PointF touch;
     PointF selectFrom, selectTo;
+    float left, right, top, bottom;
 
-    final float POINT_SIZE = 8.0f;
-    final float SELECT_DISTANCE = 12.0f;
+    final float POINT_SIZE = 12.0f;
+    final float SELECT_DISTANCE = 16.0f;
     final float DENSITY = Resources.getSystem().getDisplayMetrics().density;
 
 
@@ -59,7 +62,14 @@ public class LayoutView extends View implements View.OnTouchListener
         selectTo = new PointF();
 
         pointPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        pointPaint.setColor(Color.rgb(0, 127, 0)); //темно-зеленый
+        pointPaint.setColor(Color.rgb(0, 160, 0)); //темно-зеленый
+
+        selPointPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        selPointPaint.setColor(Color.rgb(80, 80, 255)); //синий
+
+        selAreaPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        selAreaPaint.setStyle(Paint.Style.FILL);
+        selAreaPaint.setColor(Color.argb(127, 160, 160, 255));
 
         fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         fillPaint.setStyle(Paint.Style.FILL);
@@ -72,10 +82,13 @@ public class LayoutView extends View implements View.OnTouchListener
 
         letterPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
         letterPaint.setColor(Color.WHITE);
+        letterPaint.setTextAlign(Paint.Align.CENTER);
+        letterPaint.setTextSize(16.0f);
+        letterPaint.setTypeface(Typeface.create("Arial", Typeface.NORMAL));
         letterPaint.setSubpixelText(true);
 
         lengthPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        lengthPaint.setTextSize(lengthPaint.getTextSize() * 0.7f);
+//        lengthPaint.setTextSize(lengthPaint.getTextSize() * 0.7f);
         lengthPaint.setColor(Color.BLACK);
         lengthPaint.setSubpixelText(true);
 
@@ -84,6 +97,12 @@ public class LayoutView extends View implements View.OnTouchListener
 
         path = new Path();
     }
+
+//    private void drawInfo(Canvas canvas)
+//    {
+//        for (int i = 0; i < 30; i++)
+//            canvas.drawText(getPointLetter(28), 10.f, 0 * 20.f + 20.f, lengthPaint);
+//    }
 
     @Override
     protected void onDraw(Canvas canvas)
@@ -124,14 +143,21 @@ public class LayoutView extends View implements View.OnTouchListener
                 drawLength(i, j, canvas);
             }
 
-            //вершина с литералом
+            //вершины с литералом
             PointF p = points.get(i);
-            canvas.drawCircle(p.x, p.y, POINT_SIZE, pointPaint);
-            canvas.drawText(getPointLetter(i), p.x - 4, p.y + 4, letterPaint);
+            if (selectedIndices.contains(i))
+                canvas.drawCircle(p.x, p.y, POINT_SIZE, selPointPaint); //выделенные
+            else
+                canvas.drawCircle(p.x, p.y, POINT_SIZE, pointPaint);
+
+            canvas.drawText(getPointLetter(i), p.x, p.y + 6, letterPaint);
         }
 
-        //TODO: рисовать область выделения и выделенные точки
+        //область выделения
+        if (selecting)
+            canvas.drawRect(left, top, right, bottom, selAreaPaint);
 
+//        drawInfo(canvas);
         canvas.restore();
     }
 
@@ -158,9 +184,11 @@ public class LayoutView extends View implements View.OnTouchListener
     {
         index = (index + points.size()) % points.size();
 
-        String letter = String.valueOf((char) ('A' + index));
+        int az = 'Z' - 'A' + 1;
+
+        String letter = String.valueOf((char) ('A' + (index % az)));
         if ('A' + index > 'Z')
-            letter += (char) ('A' + index / ('Z' - 'A'));
+            letter += String.valueOf(index / az);
 
         return letter;
     }
@@ -256,7 +284,6 @@ public class LayoutView extends View implements View.OnTouchListener
     {
         selectedIndices.clear();
 
-        float left, right, top, bottom;
         if (from.x < to.x)
         {
             left = from.x;
