@@ -1,5 +1,6 @@
 package com.projects.bart.liderrrstretchceilings;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.res.Resources;
 import android.graphics.Canvas;
@@ -11,8 +12,10 @@ import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 /**
  * Created by BART on 21.06.2017.
@@ -21,7 +24,7 @@ import java.util.ArrayList;
 public class LayoutView extends View implements View.OnTouchListener
 {
     private enum DrawStyle { Normal/*, Selected, Error*/ }
-    private enum EditMode { New, SelectAndMove}
+    public enum EditMode { New, SelectAndMove, InsertPoint }
 
 
     EditMode editMode = EditMode.New;
@@ -88,7 +91,9 @@ public class LayoutView extends View implements View.OnTouchListener
         letterPaint.setSubpixelText(true);
 
         lengthPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-//        lengthPaint.setTextSize(lengthPaint.getTextSize() * 0.7f);
+        lengthPaint.setTypeface(Typeface.MONOSPACE);
+        lengthPaint.setTextAlign(Paint.Align.CENTER);
+        lengthPaint.setTextSize(9);
         lengthPaint.setColor(Color.BLACK);
         lengthPaint.setSubpixelText(true);
 
@@ -98,11 +103,11 @@ public class LayoutView extends View implements View.OnTouchListener
         path = new Path();
     }
 
-//    private void drawInfo(Canvas canvas)
-//    {
-//        for (int i = 0; i < 30; i++)
-//            canvas.drawText(getPointLetter(28), 10.f, 0 * 20.f + 20.f, lengthPaint);
-//    }
+    private void drawInfo(Canvas canvas)
+    {
+        for (int i = 0; i < 30; i++)
+            canvas.drawText(getPointLetter(i), 10, 20 + i * 20, lengthPaint);
+    }
 
     @Override
     protected void onDraw(Canvas canvas)
@@ -143,7 +148,7 @@ public class LayoutView extends View implements View.OnTouchListener
                 drawLength(i, j, canvas);
             }
 
-            //вершины с литералом
+            //вершина с литералом
             PointF p = points.get(i);
             if (selectedIndices.contains(i))
                 canvas.drawCircle(p.x, p.y, POINT_SIZE, selPointPaint); //выделенные
@@ -157,7 +162,7 @@ public class LayoutView extends View implements View.OnTouchListener
         if (selecting)
             canvas.drawRect(left, top, right, bottom, selAreaPaint);
 
-//        drawInfo(canvas);
+        drawInfo(canvas);
         canvas.restore();
     }
 
@@ -177,12 +182,14 @@ public class LayoutView extends View implements View.OnTouchListener
         PointF c = new PointF((p.x + p2.x) / 2f, (p.y + p2.y) / 2f);
         RectF r = new RectF(c.x - w / 2f - 2, c.y - h / 2f - 2, c.x + w / 2f + 2, c.y + h / 2f + 2);
         canvas.drawRoundRect(r, 5f, 5f, fillPaint);
-        canvas.drawText(s, r.left + 2, r.bottom - 2, lengthPaint);
+        //canvas.drawText(s, r.left + 2, r.bottom - 2, lengthPaint);
+        canvas.drawText(s, c.x, c.y + 4, lengthPaint);
     }
 
     private String getPointLetter(int index)
     {
-        index = (index + points.size()) % points.size();
+        if (!points.isEmpty())
+            index = (index + points.size()) % points.size();
 
         int az = 'Z' - 'A' + 1;
 
@@ -204,10 +211,18 @@ public class LayoutView extends View implements View.OnTouchListener
                 if (event.getAction() == MotionEvent.ACTION_UP)
                     addPoint(touch);
                 break;
+
             case SelectAndMove:
                 selectAndMoveMode(event);
                 break;
+
+            case InsertPoint:
+                if (event.getAction() == MotionEvent.ACTION_UP)
+                    insertPointAt(touch);
+                break;
+
             default:
+                Toast.makeText(getContext(), "Внимание! Режим не проеделен", Toast.LENGTH_SHORT).show();
                 break;
         }
 
@@ -262,8 +277,6 @@ public class LayoutView extends View implements View.OnTouchListener
                 break;
         }
     }
-
-    //---------------------
 
     private boolean selectPointAt(PointF p)
     {
@@ -334,7 +347,22 @@ public class LayoutView extends View implements View.OnTouchListener
         }
     }
 
-    //---------------------
+    public void deleteSelectedPoints()
+    {
+        if (selectedIndices.isEmpty() || (points.size() - selectedIndices.size()) < 3)
+            return;
+
+        Collections.sort(selectedIndices, Collections.reverseOrder());
+        for (int i = 0; i < selectedIndices.size(); i++)
+        {
+            points.remove((int)selectedIndices.get(i));
+//            Log.d("ml", String.format("remove point %d", (int)selectedPoints.get(i)));
+        }
+
+        selectedIndices.clear();
+
+        invalidate();
+    }
 
     public void newLayout()
     {
@@ -380,6 +408,28 @@ public class LayoutView extends View implements View.OnTouchListener
         points.add(p);
 
 //        onChangeLayout();
+    }
+
+    private void insertPointAt(PointF p)
+    {
+        for (int i = 0; i < points.size(); i++)
+        {
+            int j = (i + 1) % points.size();
+            if (Geometry.intersectLineCircle(points.get(i), points.get(j), p, SELECT_DISTANCE))
+            {
+                points.add(j, Geometry.projectionPointToLine(p, points.get(i), points.get(j)));
+                break;
+            }
+        }
+    }
+
+    public boolean changeEditMode(EditMode newMode)
+    {
+        if (newMode == EditMode.InsertPoint && (editMode != EditMode.SelectAndMove))
+            return false;
+
+        editMode = newMode;
+        return true;
     }
 
 //    private void onChangeLayout()

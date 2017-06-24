@@ -6,14 +6,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
+import android.widget.ToggleButton;
 
-public class LayoutEditor extends AppCompatActivity implements View.OnClickListener
+public class LayoutEditor extends AppCompatActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener
 {
     LinearLayout llLayoutView;
-    Button btnNew, btnSave;
+    Button btnNew, btnSave, btnDeletePoint;
     LayoutView layoutView;
     CheckBox cb90;
+    ToggleButton tbInsertPoint;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -29,6 +32,12 @@ public class LayoutEditor extends AppCompatActivity implements View.OnClickListe
 
         cb90 = (CheckBox)findViewById(R.id.cb90);
         cb90.setOnClickListener(this);
+
+        tbInsertPoint = (ToggleButton)findViewById(R.id.tbInsertPoint);
+        tbInsertPoint.setOnCheckedChangeListener(this);
+
+        btnDeletePoint = (Button)findViewById(R.id.btnDeletePoint);
+        btnDeletePoint.setOnClickListener(this);
 
         llLayoutView = (LinearLayout)findViewById(R.id.llLayoutView);
         layoutView = new LayoutView(this);
@@ -48,6 +57,23 @@ public class LayoutEditor extends AppCompatActivity implements View.OnClickListe
                 break;
             case R.id.cb90:
                 layoutView.setStraight(cb90.isChecked());
+                break;
+            case R.id.btnDeletePoint:
+                layoutView.deleteSelectedPoints();
+                break;
+        }
+    }
+
+    @Override
+    public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
+    {
+        switch (buttonView.getId())
+        {
+            case R.id.tbInsertPoint:
+                if (isChecked)
+                    tbInsertPoint.setChecked(layoutView.changeEditMode(LayoutView.EditMode.InsertPoint));
+                else
+                    layoutView.changeEditMode(LayoutView.EditMode.SelectAndMove);
                 break;
         }
     }
