@@ -2,6 +2,7 @@ package com.projects.bart.liderrrstretchceilings;
 
 import android.annotation.SuppressLint;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.graphics.Canvas;
 import android.graphics.Color;
@@ -17,9 +18,13 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Collections;
 
+import static android.support.v4.content.ContextCompat.startActivity;
+
 /**
  * Created by BART on 21.06.2017.
  */
+
+//TODO: zoom,
 
 public class LayoutView extends View implements View.OnTouchListener
 {
@@ -243,11 +248,18 @@ public class LayoutView extends View implements View.OnTouchListener
             case MotionEvent.ACTION_DOWN: // нажатие
                 selectFrom.set(touch);
                 selectTo.set(touch);
+                int edge = -1;
 
                 if (isSelectedPointAt(touch) || selectPointAt(touch))
                 {
                     moving = true;
-                    break;
+                }
+                else if ((edge = selectEdgeAt(touch)) > -1)
+                {
+                    Intent intent = new Intent(getContext(), SetEdgeLength.class);
+                    intent.putExtra("letters", getPointLetter(edge) + getPointLetter(edge + 1));
+                    intent.putExtra("length", getEdgeLength(edge) / 20f);
+                    startActivity(getContext(), intent, null);
                 }
                 break;
 
@@ -269,19 +281,23 @@ public class LayoutView extends View implements View.OnTouchListener
 
             case MotionEvent.ACTION_UP: // отпускание
             case MotionEvent.ACTION_CANCEL:
-//                int edge;
-//                if (!selecting && !moving && (edge = ceilingLayout.selectEdgeAt(touch)) > -1)
-//                {
-//                    Intent intent = new Intent(getContext(), actSetEdgeLength.class);
-//                    intent.putExtra("letters", ceilingLayout.getPointLetter(edge) + ceilingLayout.getPointLetter(edge + 1));
-//                    intent.putExtra("length", ceilingLayout.getEdgeLength(edge) / 20f);
-//                    startActivityForResult(intent, SET_EDGE_LENGTH);
-//                }
-
                 selecting = false;
                 moving = false;
                 break;
         }
+    }
+
+    private float getEdgeLength(int edge)
+    {
+        if (points.size() < 2)
+            return 0;
+
+        int i, j;
+        i = (edge + points.size()) % points.size();
+        j = (edge + 1 + points.size()) % points.size();
+
+        return Geometry.distance(points.get(i), points.get(j));
+
     }
 
     private boolean selectPointAt(PointF p)
@@ -343,6 +359,20 @@ public class LayoutView extends View implements View.OnTouchListener
             }
         }
         return false;
+    }
+
+    private int selectEdgeAt(PointF p)
+    {
+        PointF c = new PointF();
+        for (int i = 0; i < points.size(); ++i)
+        {
+            int j = (i+1) % points.size();
+            c.set((points.get(i).x + points.get(j).x) / 2f, (points.get(i).y + points.get(j).y) / 2f);
+
+            if (Geometry.distance(p, c) < SELECT_DISTANCE)
+                return i;
+        }
+        return -1;
     }
 
     private void moveSelectedPoints(float dx, float dy)

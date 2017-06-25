@@ -16,8 +16,11 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".LayoutEditor"
-                  android:label="@string/layout_editor_label">
+        <activity
+            android:name=".LayoutEditor"
+            android:label="@string/layout_editor_label">
+        </activity>
+        <activity android:name=".SetEdgeLength">
         </activity>
     </application>
 
