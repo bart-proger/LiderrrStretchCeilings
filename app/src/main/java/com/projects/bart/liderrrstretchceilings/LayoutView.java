@@ -1,6 +1,7 @@
 package com.projects.bart.liderrrstretchceilings;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Resources;
@@ -18,7 +19,6 @@ import android.widget.Toast;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import static android.support.v4.content.ContextCompat.startActivity;
 
 /**
  * Created by BART on 21.06.2017.
@@ -257,9 +257,9 @@ public class LayoutView extends View implements View.OnTouchListener
                 else if ((edge = selectEdgeAt(touch)) > -1)
                 {
                     Intent intent = new Intent(getContext(), SetEdgeLength.class);
-                    intent.putExtra("letters", getPointLetter(edge) + getPointLetter(edge + 1));
+                    intent.putExtra("edge", getPointLetter(edge) + getPointLetter(edge + 1));
                     intent.putExtra("length", getEdgeLength(edge) / 20f);
-                    startActivity(getContext(), intent, null);
+                    //TODO: startActivityForResult(intent, SET_EDGE_LENGTH);
                 }
                 break;
 

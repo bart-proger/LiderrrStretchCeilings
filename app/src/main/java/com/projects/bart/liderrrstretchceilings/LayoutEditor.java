@@ -1,5 +1,6 @@
 package com.projects.bart.liderrrstretchceilings;
 
+import android.app.Activity;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -62,7 +63,10 @@ public class LayoutEditor extends AppCompatActivity implements View.OnClickListe
                 layoutView.deleteSelectedPoints();
                 break;
         }
+        (Activity)(this).startActivityForResult();
+        this.startActivityForResult();
     }
+
 
     @Override
     public void onCheckedChanged(CompoundButton buttonView, boolean isChecked)
