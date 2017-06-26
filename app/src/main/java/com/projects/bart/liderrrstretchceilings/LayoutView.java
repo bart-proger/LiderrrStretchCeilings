@@ -1,6 +1,5 @@
 package com.projects.bart.liderrrstretchceilings;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -12,6 +11,7 @@ import android.graphics.Path;
 import android.graphics.PointF;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.util.Pair;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Toast;
@@ -56,8 +56,11 @@ public class LayoutView extends View implements View.OnTouchListener
     final float LETTER_FONT_SIZE = 14.0f;
     final float LENGTH_FONT_SIZE = 8.0f;
 
+    public static final int RC_SET_EDGE_LENGTH = 1;
+
     ArrayList<PointF> points;
     ArrayList<Integer> selectedIndices;
+    Pair<Integer, Integer> selectedEdge;
     Path path;
 
 
@@ -116,6 +119,8 @@ public class LayoutView extends View implements View.OnTouchListener
     {
         canvas.drawText("density=" + String.valueOf(DENSITY), 10, 20, infoPaint);
         canvas.drawText("select_dist=" + String.valueOf(SELECT_DISTANCE), 10, 40, infoPaint);
+        if (selectedEdge != null)
+            canvas.drawText("selected_edge=" + getPointName(selectedEdge.first) + getPointName(selectedEdge.second), 10, 50, infoPaint);
     }
 
     @Override
@@ -164,7 +169,7 @@ public class LayoutView extends View implements View.OnTouchListener
             else
                 canvas.drawCircle(p.x, p.y, POINT_SIZE, pointPaint);
 
-            canvas.drawText(getPointLetter(i), p.x, p.y + 6, letterPaint);
+            canvas.drawText(getPointName(i), p.x, p.y + 6, letterPaint);
         }
 
         //область выделения
@@ -181,7 +186,7 @@ public class LayoutView extends View implements View.OnTouchListener
                 p2 = points.get(index2);
 
         float d = Geometry.distance(p, p2);
-        String s = String.format("%.2f", d / 20f);
+        String s = String.format("%.2f", d);
         float w = lengthPaint.measureText(s);
 
         if (w+20f > d)  //FIX длина перекрывает линию если сторона маленькая
@@ -197,10 +202,10 @@ public class LayoutView extends View implements View.OnTouchListener
         canvas.drawText(s, c.x, c.y + h / 2f - 1f, lengthPaint);
     }
 
-    private String getPointLetter(int index)
+    private String getPointName(int index)
     {
-        if (!points.isEmpty())
-            index = (index + points.size()) % points.size();
+        if (index < 0)
+            index += points.size();
 
         int az = 'Z' - 'A' + 1;
 
@@ -233,7 +238,7 @@ public class LayoutView extends View implements View.OnTouchListener
                 break;
 
             default:
-                Toast.makeText(getContext(), "Внимание! Режим не проеделен", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Warning: Undefined editMode!", Toast.LENGTH_SHORT).show();
                 break;
         }
 
@@ -248,18 +253,17 @@ public class LayoutView extends View implements View.OnTouchListener
             case MotionEvent.ACTION_DOWN: // нажатие
                 selectFrom.set(touch);
                 selectTo.set(touch);
-                int edge = -1;
 
                 if (isSelectedPointAt(touch) || selectPointAt(touch))
                 {
                     moving = true;
                 }
-                else if ((edge = selectEdgeAt(touch)) > -1)
+                else if (selectEdgeAt(touch))
                 {
-                    Intent intent = new Intent(getContext(), SetEdgeLength.class);
-                    intent.putExtra("edge", getPointLetter(edge) + getPointLetter(edge + 1));
-                    intent.putExtra("length", getEdgeLength(edge) / 20f);
-                    //TODO: startActivityForResult(intent, SET_EDGE_LENGTH);
+                    Intent data = new Intent(getContext(), SetEdgeLength.class);
+                    data.putExtra("edge", getPointName(selectedEdge.first) + getPointName(selectedEdge.second));
+                    data.putExtra("length", getEdgeLength(selectedEdge.first));
+                    ((Activity)getContext()).startActivityForResult(data, RC_SET_EDGE_LENGTH);
                 }
                 break;
 
@@ -361,20 +365,6 @@ public class LayoutView extends View implements View.OnTouchListener
         return false;
     }
 
-    private int selectEdgeAt(PointF p)
-    {
-        PointF c = new PointF();
-        for (int i = 0; i < points.size(); ++i)
-        {
-            int j = (i+1) % points.size();
-            c.set((points.get(i).x + points.get(j).x) / 2f, (points.get(i).y + points.get(j).y) / 2f);
-
-            if (Geometry.distance(p, c) < SELECT_DISTANCE)
-                return i;
-        }
-        return -1;
-    }
-
     private void moveSelectedPoints(float dx, float dy)
     {
         for (int i = 0; i < selectedIndices.size(); i++)
@@ -466,6 +456,41 @@ public class LayoutView extends View implements View.OnTouchListener
 
         editMode = newMode;
         return true;
+    }
+
+    private boolean selectEdgeAt(PointF p)
+    {
+        selectedEdge = null;
+
+        PointF c = new PointF();
+        for (int i = 0; i < points.size(); ++i)
+        {
+            int j = (i+1) % points.size();
+            c.set((points.get(i).x + points.get(j).x) / 2f, (points.get(i).y + points.get(j).y) / 2f);
+
+            if (Geometry.distance(p, c) < SELECT_DISTANCE)
+            {
+                selectedEdge = new Pair<Integer, Integer>(i, j);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void setSelectedEdgeLength(float length)
+    {
+        if (selectedEdge != null)
+        {
+            PointF p1 = points.get(selectedEdge.first),
+                    p2 = points.get(selectedEdge.second);
+
+            points.set(selectedEdge.second, Geometry.add(p1, Geometry.scale(Geometry.normalized(Geometry.sub(p2, p1)), length)));
+
+            //TODO: перемещать все выделенные точки
+
+            invalidate();
+            //selectedEdge = null;
+        }
     }
 
 //    private void onChangeLayout()

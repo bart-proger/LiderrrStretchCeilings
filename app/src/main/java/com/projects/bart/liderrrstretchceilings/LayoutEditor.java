@@ -1,6 +1,8 @@
 package com.projects.bart.liderrrstretchceilings;
 
 import android.app.Activity;
+import android.content.Intent;
+import android.os.PersistableBundle;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -9,6 +11,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 import android.widget.ToggleButton;
 
 public class LayoutEditor extends AppCompatActivity implements View.OnClickListener, CompoundButton.OnCheckedChangeListener
@@ -63,8 +66,6 @@ public class LayoutEditor extends AppCompatActivity implements View.OnClickListe
                 layoutView.deleteSelectedPoints();
                 break;
         }
-        (Activity)(this).startActivityForResult();
-        this.startActivityForResult();
     }
 
 
@@ -80,5 +81,42 @@ public class LayoutEditor extends AppCompatActivity implements View.OnClickListe
                     layoutView.changeEditMode(LayoutView.EditMode.SelectAndMove);
                 break;
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data)
+    {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        switch (requestCode)
+        {
+            case LayoutView.RC_SET_EDGE_LENGTH:
+                if (resultCode == RESULT_OK)
+                {
+                    float newLength = data.getFloatExtra("new_length", 0.f);
+                    layoutView.setSelectedEdgeLength(newLength);
+                    Toast.makeText(this, "new_length=" + String.valueOf(newLength), Toast.LENGTH_LONG);
+                }
+                break;
+            default:
+                Toast.makeText(this, "Warning: Undefined requestCode!", Toast.LENGTH_LONG);
+                break;
+        }
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle outState, PersistableBundle outPersistentState)
+    {
+        super.onSaveInstanceState(outState, outPersistentState);
+
+        //TODO: сохранять состояние layoutView при повороте экрана
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Bundle savedInstanceState)
+    {
+        super.onRestoreInstanceState(savedInstanceState);
+
+        //TODO: загрузить состояние
     }
 }

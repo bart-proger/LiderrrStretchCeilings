@@ -8,9 +8,35 @@ import android.graphics.PointF;
 
 public final class Geometry
 {
-    public static float distance(PointF a, PointF b)    // расстояние между точками
+    // расстояние между точками
+    public static float distance(PointF a, PointF b)
     {
         return (float)Math.sqrt((a.x - b.x)*(a.x - b.x) + (a.y - b.y)*(a.y - b.y));
+    }
+
+    // сумма векторов
+    public static PointF add(PointF v1, PointF v2)
+    {
+        return new PointF(v1.x + v2.x, v1.y + v2.y);
+    }
+
+    // разность векторов
+    public static PointF sub(PointF v1, PointF v2)
+    {
+        return new PointF(v1.x - v2.x, v1.y - v2.y);
+    }
+
+    // умножение вектора на скаляр
+    public static PointF scale(PointF v, float s)
+    {
+        return new PointF(v.x * s, v.y * s);
+    }
+
+    // нормализованый вектор
+    public static PointF normalized(PointF v)
+    {
+        float l = v.length();
+        return scale(v, 1f / l);
     }
 
     public static boolean intersectLineCircle(PointF p1,  PointF p2, PointF center, float radius) // пересечение отрезка p1p2 и окружности

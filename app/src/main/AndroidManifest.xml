@@ -9,7 +9,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".Main">
+        <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -20,7 +20,10 @@
             android:name=".LayoutEditor"
             android:label="@string/layout_editor_label">
         </activity>
-        <activity android:name=".SetEdgeLength">
+        <activity
+            android:name=".SetEdgeLength"
+            android:label="Длина стороны"
+            android:theme="@style/Theme.AppCompat.Dialog">
         </activity>
     </application>
 
